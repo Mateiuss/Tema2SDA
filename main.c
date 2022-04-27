@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     }
 
     FreeC(&waitingC);
-    FreeC(&runningC);
+    FreeRunning(&runningC);
     FreeC(&finishedC);
     FreeC(&times);
     FreeS(&pool);

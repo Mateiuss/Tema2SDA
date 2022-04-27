@@ -146,6 +146,27 @@ void FreeC(AC *coada)
     *coada = NULL;
 }
 
+void FreeTask(TLG list)
+{
+    TLG aux;
+    while (list) {
+        aux = list;
+        list = list->urm;
+        if (((Task*)aux->info)->thread) {
+            free(((Task*)aux->info)->thread);
+        }
+        free(aux->info);
+        free(aux);
+    }
+}
+
+void FreeRunning(AC *coada)
+{
+    FreeTask((*coada)->ic);
+    free(*coada);
+    *coada = NULL;
+}
+
 int VidaC(AC coada)
 {
     if (!coada->ic && !coada->sc) {
