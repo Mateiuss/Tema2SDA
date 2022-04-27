@@ -53,26 +53,29 @@ void InsrC(AC coada, void *el)
 }
 
 // Functie de inserare in coada dupa criteriile mentionate in enuntul temei
-void InsrOrdonata(AC coada, void *el)
+int InsrOrdonata(AC coada, void *el)
 {
     if (coada->ic == NULL) {
         coada->ic = coada->sc = el;
-        return;
+        return 1;
     }
     if (comp(el, coada->sc)) {
         InsrC(coada, el);
-        return;
+        return 1;
     }
     AC aux = InitC(sizeof(TNod));
+    if (!aux) {
+        return 0;
+    }
     void *element = ExtrC(coada);
-    do
+    while (!VidaC(coada))
     {
         if (!comp(el, element)) {
             break;
         }
         InsrC(aux, element);
         element = ExtrC(coada);
-    } while (!VidaC(coada));
+    }
     InsrC(aux, el);
     InsrC(aux, element);
     while (!VidaC(coada)) {
@@ -82,27 +85,35 @@ void InsrOrdonata(AC coada, void *el)
     coada->ic = aux->ic;
     coada->sc = aux->sc;
     free(aux);
+    return 1;
 }
 
 // Functie de inserare ordonata in coada, in care coada times copieaza
 // aceleasi miscari precum coada initiala
-void InsrOrdonataRun(AC coada, AC times, void *el, void *time)
+int InsrOrdonataRun(AC coada, AC times, void *el, void *time)
 {
     if (coada->ic == NULL) {
         coada->ic = coada->sc = el;
         times->ic = times->sc = time;
-        return;
+        return 1;
     }
     if (comp(el, coada->sc)) {
         InsrC(coada, el);
         InsrC(times, time);
-        return;
+        return 1;
     }
     AC aux = InitC(sizeof(TNod));
+    if (!aux) {
+        return 0;
+    }
     AC time_aux = InitC(sizeof(TNod));
+    if (!time_aux) {
+        free(aux);
+        return 0;
+    }
     void *element = ExtrC(coada);
     void *time_element = ExtrC(times);
-    do
+    while (!VidaC(coada))
     {
         if (!comp(el, element)) {
             break;
@@ -111,7 +122,7 @@ void InsrOrdonataRun(AC coada, AC times, void *el, void *time)
         InsrC(time_aux, time_element);
         element = ExtrC(coada);
         time_element = ExtrC(times);
-    } while (!VidaC(coada));
+    }
     InsrC(aux, el);
     InsrC(aux, element);
     InsrC(time_aux, time);
@@ -128,6 +139,7 @@ void InsrOrdonataRun(AC coada, AC times, void *el, void *time)
     times->sc = time_aux->sc;
     free(aux);
     free(time_aux);
+    return 1;
 }
 
 // Functie de eliberare a memoriei pentru coada

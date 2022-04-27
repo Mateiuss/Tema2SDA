@@ -39,23 +39,35 @@ int main(int argc, char *argv[])
             int exec_time = atoi(strtok(NULL, " "));
             unsigned char priority = atoi(strtok(NULL, " "));
 
-            add_tasks(waitingC, nr_of_tasks, exec_time, priority, used_ids, argv[2]);
+            if(!add_tasks(waitingC, nr_of_tasks, exec_time, priority, used_ids, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "get_task")) { // get_task
             parser = strtok(read_line, " ");
             int id = atoi(strtok(NULL, " "));
 
-            get_task(runningC, waitingC, finishedC, id, used_ids, argv[2]);
+            if(!get_task(runningC, waitingC, finishedC, id, used_ids, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "get_thread")) { // get_thread
             parser = strtok(read_line, " ");
             int id = atoi(strtok(NULL, " "));
 
-            get_thread(pool, runningC, id, argv[2]);
+            if(!get_thread(pool, runningC, id, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "print waiting")) { // print waiting
-            print_waiting(waitingC, argv[2]);
+            if (!print_waiting(waitingC, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "print running")) { // print running
-            print_running(runningC, argv[2]);
+            if (!print_running(runningC, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "print finished")) { // print finished
-            print_finished(finishedC, argv[2]);
+            if (!print_finished(finishedC, argv[2])) {
+                break;
+            }
         } else if (strstr(read_line, "run")) { // run
             parser = strtok(read_line, " ");
             int T = atoi(strtok(NULL, " "));
@@ -66,11 +78,17 @@ int main(int argc, char *argv[])
             }
 
             fprintf(fout, "Running tasks for %d ms...\n", T);
-            run(waitingC, runningC, finishedC, times, pool, T, Q, &total_time, used_ids);
-
             fclose(fout);
+
+            if (!run(waitingC, runningC, finishedC, times, pool, T, Q, &total_time, used_ids)) {
+                break;
+            }
+
+            
         } else if (strstr(read_line, "finish")) { // finish
-            finish(waitingC, runningC, finishedC, times, pool, Q, &total_time);
+            if (!finish(waitingC, runningC, finishedC, times, pool, Q, &total_time)) {
+                break;
+            }
 
             FILE *fout = fopen(argv[2], "a");
             if (!fout) {
@@ -78,7 +96,7 @@ int main(int argc, char *argv[])
             }
 
             fprintf(fout, "Total time: %d", total_time);
-            
+
             fclose(fout);
         }
     }

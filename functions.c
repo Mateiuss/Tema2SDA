@@ -150,25 +150,47 @@ int comp(void *el1, void *el2)
 }
 
 // Functia de generare si de adaugare a task-urilor in coada waiting
-void add_tasks(AC waitingC, int nr, int exec_time, unsigned char priority, int *used_ids, char *out_file)
+int add_tasks(AC waitingC, int nr, int exec_time, unsigned char priority, int *used_ids, char *out_file)
 {
     FILE *fp = fopen(out_file, "a");
+    if (!fp) {
+        return 0;
+    }
 
     for (int i = 0; i < nr; ++i) {
         Task *task = new_task(exec_time, priority, used_ids);
+        if (!task) {
+            fclose(fp);
+            return 0;
+        }
         TLG cell = new_cell((void*)task);
-        InsrOrdonata(waitingC, cell);
+        if (!cell) {
+            fclose(fp);
+            free(task);
+            return 0;
+        }
+        if(!InsrOrdonata(waitingC, cell)) {
+            fclose(fp);
+            free(task);
+            free(cell);
+            return 0;
+        }
+        
 
         fprintf(fp, "Task created successfully : ID %d.\n", task->id);
     }
     
     fclose(fp);
+    return 1;
 }
 
 // Functia de cautare a unui task dupa ID intr-o coada
 int get_task_search(AC coada, int id)
 {
     AC aux = InitC(sizeof(TNod));
+    if (!aux) {
+        return 0;
+    }
     void *element;
     int exec_time = -1;
     while (!VidaC(coada)) {
@@ -187,34 +209,46 @@ int get_task_search(AC coada, int id)
 }
 
 // Functia de cautare a unui task dupa ID-ul cerut
-void get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file)
+int get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file)
 {
     FILE *fp = fopen(out_file, "a");
     if (!fp) {
         printf("Nu s-a putut deschide fisierul pentru scriere!\n");
-        return;
+        return 0;
     }
 
     int rez;
     // Cautare in running
     if ((rez = get_task_search(run, id)) != -1) {
+        if (rez == 0) {
+            fclose(fp);
+            return 0;
+        }
         fprintf(fp, "Task %d is running (remaining_time = %d).\n", id, rez);
         fclose(fp);
-        return;
+        return 1;
     }
 
     // Cautare in waiting
     if ((rez = get_task_search(wait, id)) != -1) {
+        if (rez == 0) {
+            fclose(fp);
+            return 0;
+        }
         fprintf(fp, "Task %d is waiting (remaining_time = %d).\n", id, rez);
         fclose(fp);
-        return;
+        return 1;
     }
 
     // Cautare in finished
     if ((rez = get_task_search(finish, id)) != -1) {
+        if (rez == 0) {
+            fclose(fp);
+            return 0;
+        }
         fprintf(fp, "Task %d is finished (executed_time = %d).\n", id, rez);
         fclose(fp);
-        return;
+        return 1;
     }
 
     // Daca task-ul nu a fost gasit in niciuna dintre cozi, atunci se afiseaza
@@ -222,12 +256,16 @@ void get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file)
     fprintf(fp, "Task %d not found.\n", id);
 
     fclose(fp);
+    return 1;
 }
 
 // Functie de cautare a thread-ului in pool
 int get_thread_search_stack(AS pool, int id)
 {
     AS aux = InitS(sizeof(TNod));
+    if (!aux) {
+        return -1;
+    }
     void *element;
     int found = 0;
 
@@ -250,14 +288,17 @@ int get_thread_search_stack(AS pool, int id)
 }
 
 // Functie de cautare a thread-ului in coada running
-void get_thread_search_queue(AC coada, int id, FILE *fp)
+int get_thread_search_queue(AC coada, int id, FILE *fp)
 {
     AC aux = InitC(sizeof(TNod));
+    if (!aux) {
+        return 0;
+    }
     void *element;
     while (!VidaC(coada)) {
         element = ExtrC(coada);
         if (TASK_ID(element) == id) {
-            fprintf(fp, "Thread %d is running task %i (remaining_time = %d).\n"
+            fprintf(fp, "Thread %d is running task %d (remaining_time = %d).\n"
             , id, TASK_ID(element), TASK_EXEC_TIME(element));
         }
         InsrC(aux, element);
@@ -266,28 +307,38 @@ void get_thread_search_queue(AC coada, int id, FILE *fp)
     coada->ic = aux->ic;
     coada->sc = aux->sc;
     free(aux);
+    return 1;
 }
 
 // Functie de cautare a unui thread in functie de ID
-void get_thread(AS pool, AC run, int id, char *out_file)
+int get_thread(AS pool, AC run, int id, char *out_file)
 {
     FILE *fp = fopen(out_file, "a");
     if (!fp) {
         printf("Nu s-a putut deschide fisierul pentru scriere!\n");
-        return;
+        return 0;
     }
 
     // Cautare in pool-ul de thread-uri
-    if (get_thread_search_stack(pool, id)) {
+    int rez;
+    if ((rez = get_thread_search_stack(pool, id))) {
+        if (rez == -1) {
+            fclose(fp);
+            return 0;
+        }
         fprintf(fp, "Thread %d is idle.\n", id);
         fclose(fp);
-        return;
+        return 1;
     }
 
     // Cautare in coada running
-    get_thread_search_queue(run, id, fp);
+    if (!get_thread_search_queue(run, id, fp)) {
+        fclose(fp);
+        return 0;
+    }
 
     fclose(fp);
+    return 1;
 }
 
 // Functie de afisare a cozii waiting
@@ -546,7 +597,7 @@ int run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_
         run->sc = aux->sc;
         times->ic = time_aux->ic;
         times->sc = time_aux->sc;
-        
+
         // Eliberez memoria alocata pentru cozile auxiliare
         free(aux);
         free(time_aux);
@@ -555,7 +606,7 @@ int run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_
 }
 
 // Functia apelata pentru executarea instructiunii finish
-void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time)
+int finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time)
 {
     // Aceasta ruleaza atat timp cat exista task-uri de adaugat si de rulat
     // in coada running
@@ -628,4 +679,5 @@ void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_tim
         free(aux);
         free(time_aux);
     }
+    return 1;
 }

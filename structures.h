@@ -40,15 +40,14 @@ typedef struct stiva {
 } TStiva, *AS;
 
 AS InitPool(unsigned char N);
-void add_tasks(AC waitingC, int nr, int exec_time, unsigned char priority, int *curr_id, char *out_file);
-void InsrOrdonata(AC coada, void *el);
-void get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file);
-void get_thread(AS pool, AC run, int id, char *out_file);
+int add_tasks(AC waitingC, int nr, int exec_time, unsigned char priority, int *curr_id, char *out_file);
+int get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file);
+int get_thread(AS pool, AC run, int id, char *out_file);
 int print_waiting(AC wait, char *out_file);
 int print_running(AC run, char *out_file);
 int print_finished(AC run, char *out_file);
 int run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_time, int *used_ids);
-void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time);
+int finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time);
 void FreeTask(TLG list);
 void FreeTLG(TLG list);
 int comp(void *el1, void *el2);
