@@ -529,11 +529,34 @@ void InsrOrdonataRun(AC coada, AC times, void *el, void *time)
     free(time_aux);
 }
 
+int get_max_remaining_time(AC run)
+{
+    AC aux = InitC(sizeof(TNod));
+    void *element;
+
+    int max = 0;
+    while (!VidaC(run)) {
+        element = ExtrC(run);
+
+        if (((Task*)((TLG)element)->info)->exec_time > max) {
+            max = ((Task*)((TLG)element)->info)->exec_time;
+        }
+
+        InsrC(aux, element);
+    }
+
+    run->ic = aux->ic;
+    run->sc = aux->sc;
+
+    free(aux);
+    return max;
+}
+
 void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_time, int *used_ids)
 {
     int steps = T / Q;
     steps += (T % Q) ? 1 : 0;
-    for (int i = 0; i < steps; ++i) {
+    for (int i = 0; i < steps && (!VidaC(wait) || !VidaC(run)); ++i) {
         while (!VidaS(pool) && !VidaC(wait)) {
             void *element = Pop(pool);
             void *element2 = ExtrC(wait);
@@ -546,6 +569,8 @@ void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total
         }
 
         int dec = MIN(T, Q);
+        dec = MIN(dec, get_max_remaining_time(run));
+        *total_time += dec;
 
         AC aux = InitC(sizeof(TNod));
         AC time_aux = InitC(sizeof(TNod));
@@ -554,7 +579,6 @@ void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total
             void *time_element = ExtrC(times);
             Task *task = (Task*)((TLG)(element))->info;
             task->exec_time -= dec;
-            *total_time += dec;
             if (task->exec_time <= 0) {
                 used_ids[task->id] = 0;
                 TLG cell = new_cell(task->thread);
@@ -577,5 +601,50 @@ void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total
         free(time_aux);
 
         T -= Q;
+    }
+}
+
+void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time)
+{
+    while (!VidaC(wait) || !VidaC(run)) {
+        while (!VidaS(pool) && !VidaC(wait)) {
+            void *element = Pop(pool);
+            void *element2 = ExtrC(wait);
+            ((Task*)((TLG)element2)->info)->thread = ((TLG)element)->info;
+            free(element);
+            void *info = malloc(sizeof(int));
+            memcpy(info, &((Task*)((TLG)(element2))->info)->exec_time, sizeof(int));
+            TLG cell = new_cell(info);
+            InsrOrdonataRun(run, times, element2, cell);
+        }
+
+        int dec = get_max_remaining_time(run);
+        *total_time += dec;
+        AC aux = InitC(sizeof(TNod));
+        AC time_aux = InitC(sizeof(TNod));
+        while (!VidaC(run)) {
+            void *element = ExtrC(run);
+            void *time_element = ExtrC(times);
+            Task *task = (Task*)((TLG)(element))->info;
+            task->exec_time -= dec;
+            if (task->exec_time <= 0) {
+                TLG cell = new_cell(task->thread);
+                task->thread = NULL;
+                Push(pool, cell);
+                memcpy(&task->exec_time, ((TLG)(time_element))->info, sizeof(int));
+                free(((TLG)time_element)->info);
+                free(time_element);
+                InsrC(finish, element);
+            } else {
+                InsrC(aux, element);
+                InsrC(time_aux, time_element);
+            }
+        }
+        run->ic = aux->ic;
+        run->sc = aux->sc;
+        times->ic = time_aux->ic;
+        times->sc = time_aux->sc;
+        free(aux);
+        free(time_aux);
     }
 }

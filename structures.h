@@ -42,3 +42,4 @@ void print_waiting(AC wait, char *out_file);
 void print_running(AC run, char *out_file);
 void print_finished(AC run, char *out_file);
 void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_time, int *used_ids);
+void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time);

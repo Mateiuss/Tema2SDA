@@ -58,6 +58,15 @@ int main(int argc, char *argv[])
             run(waitingC, runningC, finishedC, times, pool, T, Q, &total_time, used_ids);
 
             fclose(fp);
+        } else if (strstr(read_line, "finish")) {
+            finish(waitingC, runningC, finishedC, times, pool, Q, &total_time);
+
+            FILE *fp = fopen(argv[2], "a");
+            if (!fp) {
+                break;
+            }
+
+            fprintf(fp, "Total time: %d", total_time);
         }
     }
 
