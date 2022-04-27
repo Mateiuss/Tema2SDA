@@ -1,27 +1,37 @@
 #include "structures.h"
-#define MAX 256
+#include "headerCoada.h"
+#include "headerStiva.h"
 
 int main(int argc, char *argv[])
 {
     FILE *fp = fopen(argv[1], "r");
+    // Sirul de caractere folosit pentru citirea liniilor din fisier si 
+    // pointerul utilizat pentru parsarea instructiunilor
     char read_line[MAX], *parser;
 
+    // Citirea si determinarea pentru variabilele: Q, C, N
     int Q;
     unsigned char C, N;
     fscanf(fp, "%d %hhd\n", &Q, &C);
     N = 2 * C;
 
+    // Initializarea pool-ului, a cozilor de waiting, running si finished
+    // si a cozii in care retin timpii de executie a task-urilor inainte de
+    // a introduce task-ul in coada running
     AS pool = InitPool(N);
     AC waitingC = InitC(sizeof(TNod));
     AC runningC = InitC(sizeof(TNod));
     AC finishedC = InitC(sizeof(TNod));
     AC times = InitC(sizeof(TNod));
 
-    int used_ids[32678] = {0};
+    // Vectorul de frecventa folosit pentru a determina ID-urile libere, 
+    // respectiv variabila in care retin timpul total de executie
+    int used_ids[MAX_TASKS] = {0};
     int total_time = 0;
 
     while (fgets(read_line, MAX, fp)) {
-        if (strstr(read_line, "add_tasks")) {
+        read_line[strcspn(read_line, "\n")] = 0;
+        if (strstr(read_line, "add_tasks")) { // add_tasks
             parser = strtok(read_line, " ");
             parser = strtok(NULL, " ");
 
@@ -30,52 +40,57 @@ int main(int argc, char *argv[])
             unsigned char priority = atoi(strtok(NULL, " "));
 
             add_tasks(waitingC, nr_of_tasks, exec_time, priority, used_ids, argv[2]);
-        } else if (strstr(read_line, "get_task")) {
+        } else if (strstr(read_line, "get_task")) { // get_task
             parser = strtok(read_line, " ");
             int id = atoi(strtok(NULL, " "));
 
             get_task(runningC, waitingC, finishedC, id, used_ids, argv[2]);
-        } else if (strstr(read_line, "get_thread")) {
+        } else if (strstr(read_line, "get_thread")) { // get_thread
             parser = strtok(read_line, " ");
             int id = atoi(strtok(NULL, " "));
 
             get_thread(pool, runningC, id, argv[2]);
-        } else if (strstr(read_line, "print waiting")) {
+        } else if (strstr(read_line, "print waiting")) { // print waiting
             print_waiting(waitingC, argv[2]);
-        } else if (strstr(read_line, "print running")) {
+        } else if (strstr(read_line, "print running")) { // print running
             print_running(runningC, argv[2]);
-        } else if (strstr(read_line, "print finished")) {
+        } else if (strstr(read_line, "print finished")) { // print finished
             print_finished(finishedC, argv[2]);
-        } else if (strstr(read_line, "run")) {
+        } else if (strstr(read_line, "run")) { // run
             parser = strtok(read_line, " ");
             int T = atoi(strtok(NULL, " "));
 
-            FILE *fp = fopen(argv[2], "a");
-            if (!fp) {
+            FILE *fout = fopen(argv[2], "a");
+            if (!fout) {
                 break;
             }
-            fprintf(fp, "Running tasks for %d ms...\n", T);
+
+            fprintf(fout, "Running tasks for %d ms...\n", T);
             run(waitingC, runningC, finishedC, times, pool, T, Q, &total_time, used_ids);
 
-            fclose(fp);
-        } else if (strstr(read_line, "finish")) {
+            fclose(fout);
+        } else if (strstr(read_line, "finish")) { // finish
             finish(waitingC, runningC, finishedC, times, pool, Q, &total_time);
 
-            FILE *fp = fopen(argv[2], "a");
-            if (!fp) {
+            FILE *fout = fopen(argv[2], "a");
+            if (!fout) {
                 break;
             }
 
-            fprintf(fp, "Total time: %d", total_time);
+            fprintf(fout, "Total time: %d", total_time);
+            
+            fclose(fout);
         }
     }
 
-    FreeC(&waitingC);
-    FreeRunning(&runningC);
-    FreeC(&finishedC);
-    FreeC(&times);
+    // Eliberarea memoriei alocate si inchiderea fisierului deschis pentru 
+    // citirea instructiunilor
+    FreeC(&waitingC, FreeTLG);
+    FreeC(&runningC, FreeTask);
+    FreeC(&finishedC, FreeTLG);
+    FreeC(&times, FreeTLG);
     FreeS(&pool);
-
     fclose(fp);
+
     return 0;
 }

@@ -3,6 +3,15 @@
 #include <stdlib.h>
 #include <string.h>
 #define MIN(a, b) (a) < (b) ? (a) : (b)
+#define TASK_ID(el) ((Task*)((TLG)(el))->info)->id
+#define TASK_EXEC_TIME(el) ((Task*)((TLG)(el))->info)->exec_time
+#define TASK_PRIORITY(el) ((Task*)((TLG)(el))->info)->priority
+#define THREAD_ID(el) ((Thread*)((TLG)(el))->info)->id
+#define TASK_TID(el) ((Task*)((TLG)(el))->info)->thread->id
+#define TASK_THREAD(el) ((Task*)((TLG)(el))->info)->thread
+#define MAX_TASKS 32678
+#define MAX 256
+#pragma once
 
 typedef struct thread {
     unsigned char id;
@@ -31,16 +40,15 @@ typedef struct stiva {
 } TStiva, *AS;
 
 AS InitPool(unsigned char N);
-AC InitC(size_t dime);
 void add_tasks(AC waitingC, int nr, int exec_time, unsigned char priority, int *curr_id, char *out_file);
 void InsrOrdonata(AC coada, void *el);
 void get_task(AC run, AC wait, AC finish, int id, int *used_ids, char *out_file);
-void FreeC(AC *coada);
-void FreeS(AS *stiva);
 void get_thread(AS pool, AC run, int id, char *out_file);
-void print_waiting(AC wait, char *out_file);
-void print_running(AC run, char *out_file);
-void print_finished(AC run, char *out_file);
-void run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_time, int *used_ids);
+int print_waiting(AC wait, char *out_file);
+int print_running(AC run, char *out_file);
+int print_finished(AC run, char *out_file);
+int run(AC wait, AC run, AC finish, AC times, AS pool, int T, int Q, int *total_time, int *used_ids);
 void finish(AC wait, AC run, AC finish, AC times, AS pool, int Q, int *total_time);
-void FreeRunning(AC *coada);
+void FreeTask(TLG list);
+void FreeTLG(TLG list);
+int comp(void *el1, void *el2);
