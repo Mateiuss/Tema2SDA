@@ -1,2 +1,2 @@
 build: main.c functions.c
-	gcc -Wall -g -o tema2 main.c functions.c
+	gcc -g -Wall -m32 -std=c99 -o tema2 main.c functions.c
