@@ -67,14 +67,14 @@ int InsrOrdonata(AC coada, void *el)
     if (!aux) {
         return 0;
     }
-    void *element = ExtrC(coada);
+    void *element;
     while (!VidaC(coada))
     {
+        element = ExtrC(coada);
         if (!comp(el, element)) {
             break;
         }
         InsrC(aux, element);
-        element = ExtrC(coada);
     }
     InsrC(aux, el);
     InsrC(aux, element);
@@ -92,16 +92,19 @@ int InsrOrdonata(AC coada, void *el)
 // aceleasi miscari precum coada initiala
 int InsrOrdonataRun(AC coada, AC times, void *el, void *time)
 {
-    if (coada->ic == NULL) {
+    // Daca coada este goala, introduc elementele
+    if (VidaC(coada)) {
         coada->ic = coada->sc = el;
         times->ic = times->sc = time;
         return 1;
     }
+    // Daca elementul 'el' poate fi adaugat la sfarsit, atunci va fi introdus
     if (comp(el, coada->sc)) {
         InsrC(coada, el);
         InsrC(times, time);
         return 1;
     }
+    // Aloc memorie pentru niste cozi auxiliare
     AC aux = InitC(sizeof(TNod));
     if (!aux) {
         return 0;
@@ -111,17 +114,19 @@ int InsrOrdonataRun(AC coada, AC times, void *el, void *time)
         free(aux);
         return 0;
     }
-    void *element = ExtrC(coada);
-    void *time_element = ExtrC(times);
+    void *element;
+    void *time_element;
+    // In caz contrar, se parcurge coada element cu element si se verifica
+    // cand 'el' respecta conditia din enunt cu ajutorul functiei de comparare
     while (!VidaC(coada))
     {
+        element = ExtrC(coada);
+        time_element = ExtrC(times);
         if (!comp(el, element)) {
             break;
         }
         InsrC(aux, element);
         InsrC(time_aux, time_element);
-        element = ExtrC(coada);
-        time_element = ExtrC(times);
     }
     InsrC(aux, el);
     InsrC(aux, element);
@@ -149,4 +154,3 @@ void FreeC(AC *coada, void(*Free)(TLG))
     free(*coada);
     *coada = NULL;
 }
-
