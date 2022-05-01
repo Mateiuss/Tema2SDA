@@ -1,0 +1,30 @@
+# Tema2 - Dudu Matei-Ioan 313CB
+
+## In componenta acestei teme vom intalni mai multe fisiere, fisiere a caror explicatie o voi da in cele ce urmeaza.
+
+## main.c
+* Acesta este fisierul main al temei, fisier in care aloc, initializez si, la final, eliberez stivele si cozile necesare rezolvarii temei si in care identific instructiunile date prin fisier/tastatura.
+* De asemenea, acest fisier mai contine un vector de caractere, cu care citesc instructiunile, un vector de frecventa in care retin id-urile folosite in cadrul task-urilor si o variabila in care numar timpul total de executie.
+
+## functions.c
+* Acest fisier este cel care contine toate functiile cu ajutorul carora sunt executate instructiunile date, cu exceptia functiilor specifice pentru stive si cozi, acestea fiind declarate in fisiere diferite (functiiStiva.c, functiiCoada.c, headerStiva.h, headerCoada.h), fisiere la care voi ajunge mai tarziu cu explicatia.
+* In principal, functiile principale au aceeasi denumire cu instructiunea pe care o executa (ex: get_task, get_thread, run etc.)
+* Mai multe explicatii asupra functionarii acestor functii se afla in comentariile din cod.
+
+## structures.h
+* structures.h este fisierul de tip header in care se afla definitiile structurilor task, thread, stiva, lista generica si coada.
+* De asememea, mai sunt specificate bibliotecile folosite, definitiile macro-urilor folosite (ex: #define TASK_ID(el) ((Task*)((TLG)(el))->info)->id ) si prototipurile functiilor din functions.c .
+
+## functiiStiva.c si headerStiva.h
+* In fisierul functiiStiva.c se afla functii specifice stivei,  precum: initializare stiva, push, pop, verifica daca stiva este goala si eliberare stiva.
+* In headerStiva.h se gasesc prototipurile functiilor definite in fisierul anterior.
+
+## functiiCoada.c si headerCoada.h
+* In functiiCoada.c se gasesc functiile: initializare coada, extrage din coada, introduce in coada, verifica daca coada este goala, doua tipuri de inserari ordonate si eliberare coada.
+* Ca in grupul de fisiere din urma, si in cazul acesta in fisierul de tip header, numit headerCoada.h, se afla prototipurile functiilor definite in fisierul anterior.
+
+## Makefile
+* Contine doua reguli: build si clean.
+
+## README
+* Intr-un final, ajungem si la fisierul de fata, unde, evident, se gaseste explicatia modului in care tema a fost implementata. Multumesc pentru ca l-ati parcurs!
